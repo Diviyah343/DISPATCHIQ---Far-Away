@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,200..800&display=swap" rel="stylesheet">
+    <title>DispatchIQ - Operations</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Bricolage Grotesque', 'Segoe UI', sans-serif; background: #ffffff; color: #112147; }
+
+        header {
+            background: #ffffff;
+            padding: 1rem 2rem;
+            border-bottom: 1px solid #d4d4d8;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        }
+        .logo { display: flex; align-items: center; gap: 0.75rem; }
+        .logo-icon { background: #f5a623; color: white; width: 36px; height: 36px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 1rem; }
+        .logo h1 { font-size: 1.25rem; font-weight: 700; color: #112147; }
+        .logo span { font-size: 0.75rem; color: #575b72; display: block; }
+        .header-right { display: flex; align-items: center; gap: 1rem; }
+        .status-dot { width: 8px; height: 8px; background: #22c55e; border-radius: 50%; display: inline-block; margin-right: 0.4rem; }
+        .header-right span { font-size: 0.85rem; color: #575b72; }
+
+        .main { display: grid; grid-template-columns: 320px 1fr; min-height: calc(100vh - 61px); }
+
+        .sidebar { background: #ffffff; border-right: 1px solid #d4d4d8; padding: 1.5rem; display: flex; flex-direction: column; gap: 1.5rem; }
+        .sidebar h2 { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.08em; color: #8b8fa5; margin-bottom: 0.5rem; }
+
+        .form-group { display: flex; flex-direction: column; gap: 0.4rem; margin-bottom: 0.75rem; }
+        label { font-size: 0.8rem; color: #575b72; font-weight: 500; }
+        input, select {
+            padding: 0.5rem 0.75rem;
+            border: 1px solid #d4d4d8;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            color: #112147;
+            background: #f7f7f9;
+            outline: none;
+            transition: border 0.15s;
+        }
+        input:focus, select:focus { border-color: #112147; background: #fff; }
+
+        .btn {
+            width: 100%;
+            padding: 0.6rem;
+            border: none;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.15s;
+        }
+        .btn-primary { background: #112147; color: white; }
+        .btn-primary:hover { background: #0d1b3a; }
+        .btn-secondary { background: #f7f7f9; color: #475569; border: 1px solid #d4d4d8; }
+        .btn-secondary:hover { background: #eaeaf0; }
+
+        .divider { border: none; border-top: 1px solid #d4d4d8; }
+
+        .content { padding: 1.5rem; display: flex; flex-direction: column; gap: 1.5rem; }
+
+        .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; }
+        .stat-card { background: #ffffff; border-radius: 8px; padding: 1.25rem; border: 1px solid #d4d4d8; }
+        .stat-card .label { font-size: 0.75rem; color: #8b8fa5; text-transform: uppercase; letter-spacing: 0.05em; }
+        .stat-card .value { font-size: 1.75rem; font-weight: 700; color: #112147; margin-top: 0.25rem; }
+        .stat-card .sub { font-size: 0.75rem; color: #575b72; margin-top: 0.25rem; }
+
+        .card { background: #ffffff; border-radius: 8px; border: 1px solid #d4d4d8; overflow: hidden; }
+        .card-header { padding: 1rem 1.25rem; border-bottom: 1px solid #d4d4d8; display: flex; align-items: center; justify-content: space-between; }
+        .card-header h3 { font-size: 0.9rem; font-weight: 600; color: #112147; }
+        .card-body { padding: 1.25rem; }
+
+        table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+        th { text-align: left; padding: 0.6rem 0.75rem; color: #8b8fa5; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; border-bottom: 1px solid #d4d4d8; font-weight: 600; }
+        td { padding: 0.75rem; border-bottom: 1px solid #ffffff; color: #334155; }
+        tr:last-child td { border-bottom: none; }
+        tr:hover td { background: #f7f7f9; }
+
+        .badge { display: inline-block; padding: 0.2rem 0.6rem; border-radius: 9999px; font-size: 0.7rem; font-weight: 600; }
+        .badge.pending { background: #fef9c3; color: #854d0e; }
+        .badge.assigned { background: #dbeafe; color: #1e40af; }
+        .badge.in_progress { background: #d1fae5; color: #065f46; }
+        .badge.delivered { background: #dcfce7; color: #166534; }
+
+        .log { height: 150px; overflow-y: auto; font-size: 0.8rem; font-family: monospace; }
+        .log-entry { padding: 0.3rem 0; border-bottom: 1px solid #f7f7f9; color: #575b72; }
+        .log-entry.success { color: #16a34a; }
+        .log-entry.error { color: #dc2626; }
+
+        .map-placeholder { background: #f7f7f9; border: 2px dashed #d4d4d8; border-radius: 6px; height: 200px; display: flex; align-items: center; justify-content: center; color: #8b8fa5; font-size: 0.85rem; }
+    </style>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+</head>
+<body>
+    <header>
+        <a href="/home" style="text-decoration:none;display:flex;align-items:center;gap:0.75rem;">
+            <div class="logo">
+                <div>
+                    <h1>DispatchIQ</h1>
+                    <span>Operations Dashboard</span>
+                </div>
+            </div>
+        </a>
+        <div class="header-right">
+            <span><span class="status-dot"></span>System Online</span>
+            <a href="/driver" style="text-decoration:none;">
+        </div>
+            
+                <button class="btn btn-secondary" style="width:auto;padding:0.4rem 1rem;">Driver Portal</button>
+            </a>
+        </div>
+    </header>
+
+    <div class="main">
+        <div class="sidebar">
+            <div>
+                <h2>Create New Order</h2>
+                <div class="form-group">
+                    <label>Pickup Address</label>
+                    <input type="text" id="pickupAddr" placeholder="e.g. Anna Nagar, Chennai">
+                </div>
+                <div class="form-group">
+                    <label>Pickup Coordinates</label>
+                    <input type="number" id="pickupLat" placeholder="Latitude" step="0.0001">
+                    <input type="number" id="pickupLng" placeholder="Longitude" step="0.0001" style="margin-top:0.4rem;">
+                </div>
+                <div class="form-group">
+                    <label>Delivery Address</label>
+                    <input type="text" id="deliveryAddr" placeholder="e.g. T Nagar, Chennai">
+                </div>
+                <div class="form-group">
+                    <label>Delivery Coordinates</label>
+                    <input type="number" id="deliveryLat" placeholder="Latitude" step="0.0001">
+                    <input type="number" id="deliveryLng" placeholder="Longitude" step="0.0001" style="margin-top:0.4rem;">
+                </div>
+                <button class="btn btn-primary" onclick="createOrder()">Dispatch Order</button>
+            </div>
+
+            <hr class="divider">
+
+            <div>
+                <h2>Update Order Status</h2>
+                <div class="form-group">
+                    <label>Order ID</label>
+                    <input type="number" id="statusOrderId" placeholder="Order ID">
+                </div>
+                <div class="form-group">
+                    <label>New Status</label>
+                    <select id="orderStatus">
+                        <option value="pending">Pending</option>
+                        <option value="assigned">Assigned</option>
+                        <option value="in_progress">In Progress</option>
+                        <option value="delivered">Delivered</option>
+                    </select>
+                </div>
+                <button class="btn btn-primary" onclick="updateStatus()">Update Status</button>
+            </div>
+
+            <hr class="divider">
+
+            <div>
+                <h2>Activity Log</h2>
+                <div class="log" id="log"></div>
+            </div>
+        </div>
+
+        <div class="content">
+            <div class="stats">
+                <div class="stat-card">
+                    <div class="label">Total Orders</div>
+                    <div class="value" id="totalOrders">0</div>
+                    <div class="sub">All time</div>
+                </div>
+                <div class="stat-card">
+                    <div class="label">Active Orders</div>
+                    <div class="value" id="activeOrders">0</div>
+                    <div class="sub">In progress</div>
+                </div>
+                <div class="stat-card">
+                    <div class="label">Delivered</div>
+                    <div class="value" id="deliveredOrders">0</div>
+                    <div class="sub">Completed</div>
+                </div>
+                <div class="stat-card">
+                    <div class="label">Available Drivers</div>
+                    <div class="value" id="availableDrivers">0</div>
+                    <div class="sub">Ready to dispatch</div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <h3>Live Orders</h3>
+                    <button class="btn btn-secondary" onclick="loadOrders()" style="width:auto;padding:0.3rem 0.8rem;font-size:0.75rem;">Refresh</button>
+                </div>
+                <div class="card-body">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Pickup</th>
+                                <th>Delivery</th>
+                                <th>Status</th>
+                                <th>Driver</th>
+                                <th>Created</th>
+                            </tr>
+                        </thead>
+                        <tbody id="ordersTable"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <h3>Live Map</h3>
+                </div>
+                <div class="card-body" style="padding:0;">
+                    <div id="map" style="height:400px;width:100%;border-radius:0 0 8px 8px;"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API = 'http://127.0.0.1:8000';
+
+        function log(msg, type = '') {
+            const logEl = document.getElementById('log');
+            const entry = document.createElement('div');
+            entry.className = `log-entry ${type}`;
+            entry.textContent = `[${new Date().toLocaleTimeString()}] ${msg}`;
+            logEl.prepend(entry);
+        }
+
+        async function createOrder() {
+            const body = {
+                pickup_address: document.getElementById('pickupAddr').value,
+                pickup_lat: parseFloat(document.getElementById('pickupLat').value),
+                pickup_lng: parseFloat(document.getElementById('pickupLng').value),
+                delivery_address: document.getElementById('deliveryAddr').value,
+                delivery_lat: parseFloat(document.getElementById('deliveryLat').value),
+                delivery_lng: parseFloat(document.getElementById('deliveryLng').value),
+            };
+            try {
+                const res = await fetch(`${API}/orders/create`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(body)
+                });
+                const data = await res.json();
+                if (res.ok) {
+                    log(`Order #${data.order.id} dispatched - Driver: ${data.assigned_driver ? data.assigned_driver.name : 'Unassigned'}`, 'success');
+                    loadOrders();
+                } else log(`Error: ${data.detail}`, 'error');
+            } catch (e) {
+                log('Failed to create order', 'error');
+            }
+        }
+
+        async function updateStatus() {
+            const id = document.getElementById('statusOrderId').value;
+            const status = document.getElementById('orderStatus').value;
+            try {
+                const res = await fetch(`${API}/orders/${id}/status`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ status })
+                });
+                const data = await res.json();
+                if (res.ok) {
+                    log(`Order #${id} updated to ${status}`, 'success');
+                    loadOrders();
+                } else log(`Error: ${data.detail}`, 'error');
+            } catch (e) {
+                log('Failed to update status', 'error');
+            }
+        }
+
+        async function loadOrders() {
+            try {
+                const res = await fetch(`${API}/orders/all`);
+                const orders = await res.json();
+
+                const total = orders.length;
+                const active = orders.filter(o => o.status === 'assigned' || o.status === 'in_progress').length;
+                const delivered = orders.filter(o => o.status === 'delivered').length;
+
+                document.getElementById('totalOrders').textContent = total;
+                document.getElementById('activeOrders').textContent = active;
+                document.getElementById('deliveredOrders').textContent = delivered;
+
+                const tbody = document.getElementById('ordersTable');
+                tbody.innerHTML = orders.map(o => `
+                    <tr>
+                        <td>#${o.id}</td>
+                        <td>${o.pickup_address}</td>
+                        <td>${o.delivery_address}</td>
+                        <td><span class="badge ${o.status}">${o.status.replace('_', ' ')}</span></td>
+                        <td>${o.driver_id ? 'Driver #' + o.driver_id : '-'}</td>
+                        <td>${new Date(o.created_at).toLocaleTimeString()}</td>
+                    </tr>
+                `).join('');
+            } catch (e) {
+                log('Failed to load orders', 'error');
+            }
+        }
+
+        async function loadDrivers() {
+            try {
+                const res = await fetch(`${API}/drivers/available`);
+                const drivers = await res.json();
+                document.getElementById('availableDrivers').textContent = drivers.length;
+            } catch (e) {}
+        }
+
+        loadOrders();
+        loadDrivers();
+        setInterval(() => { loadOrders(); loadDrivers(); }, 10000);
+
+        let map = null;
+        let driverMarkers = {};
+        let orderMarkers = {};
+
+        function initMap() {
+            map = L.map('map').setView([13.0827, 80.2707], 12);
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: 'OpenStreetMap'
+            }).addTo(map);
+        }
+
+        function updateMap(orders, drivers) {
+            if (!map) return;
+
+            // Clear existing markers
+            Object.values(orderMarkers).forEach(m => map.removeLayer(m));
+            Object.values(driverMarkers).forEach(m => map.removeLayer(m));
+            orderMarkers = {};
+            driverMarkers = {};
+
+            // Add order markers
+            orders.forEach(o => {
+                if (o.pickup_lat && o.pickup_lng) {
+                    orderMarkers[`pickup_${o.id}`] = L.marker([o.pickup_lat, o.pickup_lng], {
+                        icon: L.divIcon({ className: '', html: '<div style="background:#112147;color:white;padding:2px 6px;border-radius:4px;font-size:11px;white-space:nowrap;">P #' + o.id + '</div>' })
+                    }).addTo(map).bindPopup(`Order #${o.id} Pickup<br>${o.pickup_address}`);
+
+                    orderMarkers[`delivery_${o.id}`] = L.marker([o.delivery_lat, o.delivery_lng], {
+                        icon: L.divIcon({ className: '', html: '<div style="background:#f5a623;color:white;padding:2px 6px;border-radius:4px;font-size:11px;white-space:nowrap;">D #' + o.id + '</div>' })
+                    }).addTo(map).bindPopup(`Order #${o.id} Delivery<br>${o.delivery_address}`);
+                }
+            });
+
+            // Add driver markers
+            drivers.forEach(d => {
+                if (d.latitude && d.longitude) {
+                    driverMarkers[d.id] = L.marker([d.latitude, d.longitude], {
+                        icon: L.divIcon({ className: '', html: '<div style="background:#f59e0b;color:white;padding:2px 6px;border-radius:4px;font-size:11px;white-space:nowrap;">D: ' + d.name + '</div>' })
+                    }).addTo(map).bindPopup(`Driver: ${d.name}<br>Phone: ${d.phone}`);
+                }
+            });
+        }
+
+        async function loadAllDrivers() {
+            try {
+                const res = await fetch(`${API}/drivers/available`);
+                return await res.json();
+            } catch (e) { return []; }
+        }
+
+        async function refreshMap() {
+            const [orders, drivers] = await Promise.all([
+                fetch(`${API}/orders/all`).then(r => r.json()).catch(() => []),
+                loadAllDrivers()
+            ]);
+            updateMap(orders, drivers);
+        }
+
+        initMap();
+        refreshMap();
+        setInterval(refreshMap, 10000);
+    </script>
+</body>
+</html>

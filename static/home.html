@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,200..800&display=swap" rel="stylesheet">
+    <title>DispatchIQ</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Bricolage Grotesque', 'Segoe UI', sans-serif; color: #112147; min-height: 100vh; background: linear-gradient(rgba(255,255,255,0.92), rgba(255,255,255,0.92)), url('/static/map.jpg') center/cover no-repeat fixed; }
+
+        nav {
+            background: rgba(255,255,255,0.94);
+            padding: 1rem 2rem;
+            border-bottom: 1px solid #d4d4d8;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        }
+        .logo { display: flex; align-items: center; gap: 0.75rem; }
+        .logo-icon { background: #f5a623; color: white; width: 36px; height: 36px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 1rem; }
+        .logo h1 { font-size: 1.25rem; font-weight: 700; color: #112147; }
+        .nav-links { display: flex; gap: 0.75rem; }
+        .btn { padding: 0.5rem 1.25rem; border: none; border-radius: 6px; font-size: 0.85rem; font-weight: 600; cursor: pointer; text-decoration: none; display: inline-block; }
+        .btn-primary { background: #112147; color: white; }
+        .btn-primary:hover { background: #0d1b3a; }
+        .btn-outline { background: transparent; color: #112147; border: 1.5px solid #112147; }
+        .btn-outline:hover { background: #f4f4f6; }
+
+        .hero {
+            max-width: 900px;
+            margin: 5rem auto;
+            text-align: center;
+            padding: 0 1.5rem;
+        }
+        .hero-badge {
+            display: inline-block;
+            background: #f4f4f6;
+            color: #112147;
+            padding: 0.3rem 0.9rem;
+            border-radius: 9999px;
+            font-size: 0.78rem;
+            font-weight: 600;
+            margin-bottom: 1.5rem;
+            border: 1px solid #d4d4d8;
+        }
+        .hero h2 {
+            font-size: 3rem;
+            font-weight: 800;
+            color: #112147;
+            line-height: 1.15;
+            margin-bottom: 1.25rem;
+        }
+        .hero h2 span { color: #112147; }
+        .hero p {
+            font-size: 1.1rem;
+            color: #575b72;
+            max-width: 600px;
+            margin: 0 auto 2.5rem;
+            line-height: 1.7;
+        }
+        .hero-actions { display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; }
+        .btn-large { padding: 0.85rem 2rem; font-size: 1rem; border-radius: 8px; }
+
+        .features {
+            max-width: 900px;
+            margin: 4rem auto;
+            padding: 0 1.5rem;
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1.5rem;
+        }
+        .feature-card {
+            background: white;
+            border-radius: 10px;
+            padding: 1.5rem;
+            border: 1px solid #d4d4d8;
+            text-align: center;
+        }
+        .feature-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 1rem;
+            font-size: 1.4rem;
+        }
+        .feature-card h3 { font-size: 0.95rem; font-weight: 700; margin-bottom: 0.5rem; }
+        .feature-card p { font-size: 0.82rem; color: #575b72; line-height: 1.6; }
+    </style>
+</head>
+<body>
+    <nav>
+        <a href="/home" style="text-decoration:none;display:flex;align-items:center;gap:0.75rem;">
+            <div class="logo">
+                <h1>DispatchIQ</h1>
+            </div>
+        </a>
+        <div class="nav-links">
+            <a href="/driver" class="btn btn-outline">Driver Portal</a>
+            <a href="/dashboard" class="btn btn-primary">Operations</a>
+        </div>
+    </nav>
+
+    <div class="hero">
+        <div class="hero-badge">Real-time Logistics Platform</div>
+        <h2>Smarter Deliveries,<br><span>Faster Every Time</span></h2>
+        <p>DispatchIQ automatically assigns the nearest available driver to every order - giving customers live tracking and giving dispatchers full visibility.</p>
+        <div class="hero-actions">
+            <a href="/request" class="btn btn-primary btn-large">Request a Delivery</a>
+            <a href="/driver" class="btn btn-outline btn-large">I am a Driver</a>
+        </div>
+    </div>
+</body>
+</html>

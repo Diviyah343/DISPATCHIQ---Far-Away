@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,200..800&display=swap" rel="stylesheet">
+    <title>DispatchIQ - Driver Portal</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Bricolage Grotesque', 'Segoe UI', sans-serif; background: #ffffff; color: #112147; }
+
+        header {
+            background: #ffffff;
+            padding: 1rem 2rem;
+            border-bottom: 1px solid #d4d4d8;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        }
+        .logo { display: flex; align-items: center; gap: 0.75rem; }
+        .logo-icon { background: #f5a623; color: white; width: 36px; height: 36px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 1rem; }
+        .logo h1 { font-size: 1.25rem; font-weight: 700; color: #112147; }
+        .logo span { font-size: 0.75rem; color: #575b72; display: block; }
+        .btn { padding: 0.5rem 1rem; border: none; border-radius: 6px; font-size: 0.85rem; font-weight: 600; cursor: pointer; transition: background 0.15s; }
+        .btn-primary { background: #112147; color: white; }
+        .btn-primary:hover { background: #0d1b3a; }
+        .btn-secondary { background: #f7f7f9; color: #475569; border: 1px solid #d4d4d8; }
+        .btn-secondary:hover { background: #eaeaf0; }
+        .btn-full { width: 100%; }
+        .btn-danger { background: #dc2626; color: white; }
+        .btn-danger:hover { background: #b91c1c; }
+
+        .page { max-width: 480px; margin: 3rem auto; padding: 0 1rem; }
+
+        .card { background: #ffffff; border-radius: 12px; border: 1px solid #d4d4d8; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+        .card-header { padding: 1.25rem 1.5rem; border-bottom: 1px solid #d4d4d8; }
+        .card-header h2 { font-size: 1rem; font-weight: 700; color: #112147; }
+        .card-header p { font-size: 0.8rem; color: #8b8fa5; margin-top: 0.2rem; }
+        .card-body { padding: 1.5rem; display: flex; flex-direction: column; gap: 1rem; }
+
+        .form-group { display: flex; flex-direction: column; gap: 0.4rem; }
+        label { font-size: 0.8rem; color: #575b72; font-weight: 500; }
+        input { padding: 0.6rem 0.75rem; border: 1px solid #d4d4d8; border-radius: 6px; font-size: 0.85rem; color: #112147; background: #f7f7f9; outline: none; transition: border 0.15s; width: 100%; }
+        input:focus { border-color: #112147; background: #fff; }
+
+        .tabs { display: flex; border-bottom: 1px solid #d4d4d8; }
+        .tab { padding: 0.75rem 1.25rem; font-size: 0.85rem; font-weight: 500; color: #8b8fa5; cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -1px; }
+        .tab.active { color: #112147; border-bottom-color: #112147; }
+
+        .tab-content { display: none; padding: 1.5rem; flex-direction: column; gap: 1rem; }
+        .tab-content.active { display: flex; }
+
+        .driver-info { background: #f7f7f9; border-radius: 8px; padding: 1rem; display: flex; align-items: center; gap: 1rem; }
+        .driver-avatar { background: #112147; color: white; width: 48px; height: 48px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 1.1rem; }
+        .driver-details h3 { font-size: 0.95rem; font-weight: 600; }
+        .driver-details p { font-size: 0.8rem; color: #575b72; margin-top: 0.1rem; }
+
+        .order-card { background: #f7f7f9; border-radius: 8px; padding: 1rem; border: 1px solid #d4d4d8; }
+        .order-card .order-id { font-size: 0.75rem; color: #8b8fa5; margin-bottom: 0.5rem; }
+        .order-card .route { display: flex; flex-direction: column; gap: 0.4rem; }
+        .order-card .route-item { display: flex; align-items: center; gap: 0.5rem; font-size: 0.85rem; }
+        .dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+        .dot.pickup { background: #112147; }
+        .dot.delivery { background: #f5a623; }
+
+        .badge { display: inline-block; padding: 0.2rem 0.6rem; border-radius: 9999px; font-size: 0.7rem; font-weight: 600; }
+        .badge.pending { background: #f4f4f6; color: #112147; }
+        .badge.assigned { background: #f4f4f6; color: #112147; }
+        .badge.in_progress { background: #f4f4f6; color: #112147; }
+        .badge.delivered { background: #f4f4f6; color: #112147; }
+
+        .status-indicator { display: flex; align-items: center; gap: 0.5rem; font-size: 0.85rem; color: #575b72; }
+        .status-dot { width: 8px; height: 8px; border-radius: 50%; }
+        .status-dot.online { background: #22c55e; }
+        .status-dot.offline { background: #8b8fa5; }
+
+        .hidden { display: none; }
+        .alert { padding: 0.75rem 1rem; border-radius: 6px; font-size: 0.85rem; }
+        .alert-error { background: #fee2e2; color: #dc2626; }
+        .alert-success { background: #dcfce7; color: #16a34a; }
+    </style>
+</head>
+<body>
+    <header>
+        <a href="/home" style="text-decoration:none;display:flex;align-items:center;gap:0.75rem;">
+            <div class="logo">
+                <div>
+                    <h1>DispatchIQ</h1>
+                    <span>Driver Portal</span>
+                </div>
+            </div>
+        </a>
+        <a href="/dashboard" style="text-decoration:none;">
+            <button class="btn btn-secondary">Operations Dashboard</button>
+        </a>
+    </header>
+
+    <!-- Login / Register View -->
+    <div class="page" id="authView">
+        <div class="card">
+            <div class="tabs">
+                <div class="tab active" onclick="switchTab('login')">Login</div>
+                <div class="tab" onclick="switchTab('register')">Register</div>
+            </div>
+
+            <!-- Login Tab -->
+            <div class="tab-content active" id="loginTab">
+                <div class="form-group">
+                    <label>Driver ID</label>
+                    <input type="number" id="loginId" placeholder="Your Driver ID">
+                </div>
+                <div class="form-group">
+                    <label>Phone Number</label>
+                    <input type="text" id="loginPhone" placeholder="Registered phone number">
+                </div>
+                <div id="loginError" class="alert alert-error hidden"></div>
+                <button class="btn btn-primary btn-full" onclick="login()">Login</button>
+            </div>
+
+            <!-- Register Tab -->
+            <div class="tab-content" id="registerTab">
+                <div class="form-group">
+                    <label>Full Name</label>
+                    <input type="text" id="regName" placeholder="Your full name">
+                </div>
+                <div class="form-group">
+                    <label>Phone Number</label>
+                    <input type="text" id="regPhone" placeholder="Your phone number">
+                </div>
+                <div id="registerError" class="alert alert-error hidden"></div>
+                <div id="registerSuccess" class="alert alert-success hidden"></div>
+                <button class="btn btn-primary btn-full" onclick="register()">Register</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Driver Dashboard View -->
+    <div class="page hidden" id="driverView">
+        <div class="card">
+            <div class="card-body">
+                <div class="driver-info">
+                    <div class="driver-avatar" id="driverAvatar">?</div>
+                    <div class="driver-details">
+                        <h3 id="driverName">Driver Name</h3>
+                        <p id="driverPhone">Phone</p>
+                    </div>
+                </div>
+
+                <div class="status-indicator">
+                    <div class="status-dot online" id="statusDot"></div>
+                    <span id="statusText">Online</span>
+                </div>
+
+                <hr style="border:none;border-top:1px solid #d4d4d8;">
+
+                <div>
+                    <label style="font-size:0.8rem;color:#575b72;font-weight:500;display:block;margin-bottom:0.5rem;">Update My Location</label>
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.5rem;margin-bottom:0.5rem;">
+                        <input type="number" id="driverLat" placeholder="Latitude" step="0.0001">
+                        <input type="number" id="driverLng" placeholder="Longitude" step="0.0001">
+                    </div>
+                    <button class="btn btn-primary btn-full" onclick="updateLocation()">Update Location</button>
+                </div>
+
+                <hr style="border:none;border-top:1px solid #d4d4d8;">
+
+                <div>
+                    <label style="font-size:0.8rem;color:#575b72;font-weight:500;display:block;margin-bottom:0.75rem;">My Current Order</label>
+                    <div id="currentOrder">
+                        <p style="font-size:0.85rem;color:#8b8fa5;">No active order assigned.</p>
+                    </div>
+                </div>
+
+                <button class="btn btn-danger btn-full" onclick="logout()">Logout</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API = 'http://127.0.0.1:8000';
+        let currentDriver = null;
+
+        function switchTab(tab) {
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+            document.querySelector(`.tab[onclick="switchTab('${tab}')"]`).classList.add('active');
+            document.getElementById(`${tab}Tab`).classList.add('active');
+        }
+
+        async function register() {
+            const name = document.getElementById('regName').value;
+            const phone = document.getElementById('regPhone').value;
+            const errEl = document.getElementById('registerError');
+            const sucEl = document.getElementById('registerSuccess');
+            errEl.classList.add('hidden');
+            sucEl.classList.add('hidden');
+
+            try {
+                const res = await fetch(`${API}/drivers/register`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name, phone })
+                });
+                const data = await res.json();
+                if (res.ok) {
+                    sucEl.textContent = `Registered! Your Driver ID is: ${data.id}. Please save this.`;
+                    sucEl.classList.remove('hidden');
+                } else {
+                    errEl.textContent = data.detail;
+                    errEl.classList.remove('hidden');
+                }
+            } catch (e) {
+                errEl.textContent = 'Registration failed. Try again.';
+                errEl.classList.remove('hidden');
+            }
+        }
+
+        async function login() {
+            const id = document.getElementById('loginId').value;
+            const phone = document.getElementById('loginPhone').value;
+            const errEl = document.getElementById('loginError');
+            errEl.classList.add('hidden');
+
+            try {
+                const res = await fetch(`${API}/drivers/${id}`);
+                const data = await res.json();
+                if (res.ok && data.phone === phone) {
+                    currentDriver = data;
+                    showDriverDashboard(data);
+                } else {
+                    errEl.textContent = 'Invalid Driver ID or phone number.';
+                    errEl.classList.remove('hidden');
+                }
+            } catch (e) {
+                errEl.textContent = 'Login failed. Try again.';
+                errEl.classList.remove('hidden');
+            }
+        }
+
+        function showDriverDashboard(driver) {
+            document.getElementById('authView').classList.add('hidden');
+            document.getElementById('driverView').classList.remove('hidden');
+            document.getElementById('driverAvatar').textContent = driver.name.charAt(0).toUpperCase();
+            document.getElementById('driverName').textContent = driver.name;
+            document.getElementById('driverPhone').textContent = driver.phone;
+            loadCurrentOrder(driver.id);
+        }
+
+        async function updateLocation() {
+            const lat = parseFloat(document.getElementById('driverLat').value);
+            const lng = parseFloat(document.getElementById('driverLng').value);
+            try {
+                const res = await fetch(`${API}/drivers/${currentDriver.id}/location`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ latitude: lat, longitude: lng })
+                });
+                if (res.ok) {
+                    document.getElementById('statusDot').className = 'status-dot online';
+                    document.getElementById('statusText').textContent = `Location updated at ${new Date().toLocaleTimeString()}`;
+                }
+            } catch (e) {}
+        }
+
+        async function loadCurrentOrder(driverId) {
+            try {
+                const res = await fetch(`${API}/orders/all`);
+                const orders = await res.json();
+                const active = orders.find(o => o.driver_id === driverId && o.status !== 'delivered');
+                const el = document.getElementById('currentOrder');
+                if (active) {
+                    el.innerHTML = `
+                        <div class="order-card">
+                            <div class="order-id">Order #${active.id} &nbsp; <span class="badge ${active.status}">${active.status.replace('_', ' ')}</span></div>
+                            <div class="route">
+                                <div class="route-item"><div class="dot pickup"></div>${active.pickup_address}</div>
+                                <div class="route-item"><div class="dot delivery"></div>${active.delivery_address}</div>
+                            </div>
+                        </div>
+                    `;
+                } else {
+                    el.innerHTML = '<p style="font-size:0.85rem;color:#8b8fa5;">No active order assigned.</p>';
+                }
+            } catch (e) {}
+        }
+
+        function logout() {
+            currentDriver = null;
+            document.getElementById('driverView').classList.add('hidden');
+            document.getElementById('authView').classList.remove('hidden');
+        }
+    </script>
+</body>
+</html>

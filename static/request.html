@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,200..800&display=swap" rel="stylesheet">
+    <title>DispatchIQ - Request Delivery</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Bricolage Grotesque', 'Segoe UI', sans-serif; background: #ffffff; color: #112147; min-height: 100vh; }
+
+        nav {
+            background: #ffffff;
+            padding: 1rem 2rem;
+            border-bottom: 1px solid #d4d4d8;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        }
+        .logo { display: flex; align-items: center; gap: 0.75rem; text-decoration: none; }
+        .logo-icon { background: #f5a623; color: white; width: 36px; height: 36px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 1rem; }
+        .logo h1 { font-size: 1.25rem; font-weight: 700; color: #112147; }
+
+        .btn { padding: 0.5rem 1.25rem; border: none; border-radius: 6px; font-size: 0.85rem; font-weight: 600; cursor: pointer; text-decoration: none; display: inline-block; transition: background 0.15s; }
+        .btn-primary { background: #112147; color: white; width: 100%; padding: 0.75rem; font-size: 0.9rem; }
+        .btn-primary:hover { background: #0d1b3a; }
+
+        .page { 
+            max-width: 1100px; 
+            margin: 2rem auto; 
+            padding: 0 1.5rem; 
+            display: grid; 
+            grid-template-columns: 380px 1fr; 
+            gap: 1.5rem;
+            align-items: start;
+        }
+
+        .map-container {
+            position: sticky;
+            top: 1.5rem;
+            height: calc(100vh - 120px);
+            border-radius: 10px;
+            overflow: hidden;
+            border: 1px solid #d4d4d8;
+        }
+
+        .card { background: white; border-radius: 10px; border: 1px solid #d4d4d8; overflow: hidden; }
+        .card-header { padding: 1.25rem 1.5rem; border-bottom: 1px solid #d4d4d8; }
+        .card-header h2 { font-size: 1rem; font-weight: 700; }
+        .card-header p { font-size: 0.8rem; color: #8b8fa5; margin-top: 0.2rem; }
+        .card-body { padding: 1.5rem; display: flex; flex-direction: column; gap: 1rem; }
+
+        .form-group { display: flex; flex-direction: column; gap: 0.4rem; }
+        label { font-size: 0.8rem; color: #575b72; font-weight: 500; }
+        input { padding: 0.6rem 0.75rem; border: 1px solid #d4d4d8; border-radius: 6px; font-size: 0.85rem; color: #112147; background: #f7f7f9; outline: none; width: 100%; transition: border 0.15s; }
+        input:focus { border-color: #112147; background: #fff; }
+        .coords { display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; }
+
+        .divider { border: none; border-top: 1px solid #d4d4d8; }
+
+        /* Tracking view */
+        .tracking-header { padding: 1.25rem 1.5rem; border-bottom: 1px solid #d4d4d8; display: flex; align-items: center; justify-content: space-between; }
+        .tracking-header h2 { font-size: 1rem; font-weight: 700; }
+        .badge { display: inline-block; padding: 0.2rem 0.6rem; border-radius: 9999px; font-size: 0.7rem; font-weight: 600; }
+        .badge.assigned { background: #f4f4f6; color: #112147; }
+        .badge.in_progress { background: #f4f4f6; color: #112147; }
+        .badge.delivered { background: #f4f4f6; color: #112147; }
+        .badge.pending { background: #f4f4f6; color: #112147; }
+
+        .tracking-info { padding: 1.25rem 1.5rem; display: flex; flex-direction: column; gap: 1rem; }
+        .info-row { display: flex; justify-content: space-between; align-items: center; font-size: 0.85rem; }
+        .info-row .key { color: #8b8fa5; }
+        .info-row .val { font-weight: 600; color: #112147; }
+
+        .route-visual { display: flex; flex-direction: column; gap: 0.5rem; padding: 1rem; background: #f7f7f9; border-radius: 8px; }
+        .route-item { display: flex; align-items: center; gap: 0.75rem; font-size: 0.85rem; }
+        .dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+        .dot.pickup { background: #112147; }
+        .dot.delivery { background: #f5a623; }
+        .route-line { width: 2px; height: 20px; background: #d4d4d8; margin-left: 4px; }
+
+        .eta-box { background: #f4f4f6; border: 1px solid #d4d4d8; border-radius: 8px; padding: 1rem; text-align: center; }
+        .eta-box .eta-value { font-size: 1.75rem; font-weight: 800; color: #112147; }
+        .eta-box .eta-label { font-size: 0.78rem; color: #575b72; margin-top: 0.2rem; }
+
+        .driver-box { background: #f7f7f9; border-radius: 8px; padding: 1rem; display: flex; align-items: center; gap: 1rem; }
+        .driver-avatar { background: #112147; color: white; width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; flex-shrink: 0; }
+        .driver-info h4 { font-size: 0.9rem; font-weight: 600; }
+        .driver-info p { font-size: 0.78rem; color: #575b72; }
+
+        #map { 
+            height: 100%; 
+            width: 100%;
+        }
+
+        .hidden { display: none; }
+
+        .alert { padding: 0.75rem 1rem; border-radius: 6px; font-size: 0.85rem; margin-top: 0.5rem; }
+        .alert-error { background: #fee2e2; color: #dc2626; }
+    </style>
+</head>
+<body>
+    <nav>
+        <a href="/home" class="logo" style="text-decoration:none;display:flex;align-items:center;gap:0.75rem;">
+            <h1>DispatchIQ</h1>
+        </a>
+    </nav>
+
+    <div class="page">
+        <!-- Left Panel -->
+        <div>
+            <!-- Request Form -->
+            <div class="card" id="requestForm">
+                <div class="card-header">
+                    <h2>Request a Delivery</h2>
+                    <p>Fill in your pickup and drop details</p>
+                </div>
+                <div class="card-body">
+                    <div class="form-group">
+                        <label>Pickup Address</label>
+                        <input type="text" id="pickupAddr" placeholder="e.g. Anna Nagar, Chennai">
+                    </div>
+                    <div class="form-group">
+                        <label>Pickup Coordinates</label>
+                        <div class="coords">
+                            <input type="number" id="pickupLat" placeholder="Latitude" step="0.0001">
+                            <input type="number" id="pickupLng" placeholder="Longitude" step="0.0001">
+                        </div>
+                    </div>
+                    <hr class="divider">
+                    <div class="form-group">
+                        <label>Delivery Address</label>
+                        <input type="text" id="deliveryAddr" placeholder="e.g. T Nagar, Chennai">
+                    </div>
+                    <div class="form-group">
+                        <label>Delivery Coordinates</label>
+                        <div class="coords">
+                            <input type="number" id="deliveryLat" placeholder="Latitude" step="0.0001">
+                            <input type="number" id="deliveryLng" placeholder="Longitude" step="0.0001">
+                        </div>
+                    </div>
+                    <div id="formError" class="alert alert-error hidden"></div>
+                    <button class="btn btn-primary" onclick="requestDelivery()">Request Delivery</button>
+                </div>
+            </div>
+
+            <!-- Tracking Panel -->
+            <div class="card hidden" id="trackingPanel">
+                <div class="tracking-header">
+                    <h2>Order #<span id="trackOrderId"></span></h2>
+                    <span class="badge" id="trackStatus">pending</span>
+                </div>
+                <div class="tracking-info">
+                    <div class="eta-box">
+                        <div class="eta-value" id="etaValue">--</div>
+                        <div class="eta-label">Estimated delivery time</div>
+                    </div>
+
+                    <div class="route-visual">
+                        <div class="route-item">
+                            <div class="dot pickup"></div>
+                            <span id="trackPickup">--</span>
+                        </div>
+                        <div class="route-line"></div>
+                        <div class="route-item">
+                            <div class="dot delivery"></div>
+                            <span id="trackDelivery">--</span>
+                        </div>
+                    </div>
+
+                    <div class="driver-box" id="driverBox">
+                        <div class="driver-avatar" id="driverInitial">?</div>
+                        <div class="driver-info">
+                            <h4 id="driverName">Assigning driver...</h4>
+                            <p id="driverPhone"></p>
+                        </div>
+                    </div>
+
+                    <div class="info-row">
+                        <span class="key">Status</span>
+                        <span class="val" id="trackStatusText">Pending</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Map -->
+        <div class="map-container">
+            <div id="map"></div>
+        </div>
+    </div>
+
+    <script>
+        const API = 'http://127.0.0.1:8000';
+        let map = null;
+        let currentOrderId = null;
+        let currentOrder = null;
+        let trackingInterval = null;
+        let pickupMarker = null;
+        let deliveryMarker = null;
+        let driverMarker = null;
+        let routeLine = null;
+
+        function initMap() {
+            map = L.map('map').setView([13.0827, 80.2707], 12);
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: 'OpenStreetMap'
+            }).addTo(map);
+        }
+
+        function calcETA(driverLat, driverLng, deliveryLat, deliveryLng) {
+            const R = 6371;
+            const toRad = x => x * Math.PI / 180;
+            const dLat = toRad(deliveryLat - driverLat);
+            const dLon = toRad(deliveryLng - driverLng);
+            const a = Math.sin(dLat/2)**2 + Math.cos(toRad(driverLat)) * Math.cos(toRad(deliveryLat)) * Math.sin(dLon/2)**2;
+            const dist = R * 2 * Math.asin(Math.sqrt(a));
+            const avgSpeedKmh = 30;
+            const mins = Math.round((dist / avgSpeedKmh) * 60);
+            return mins < 1 ? '< 1 min' : `${mins} min${mins > 1 ? 's' : ''}`;
+        }
+
+        function calcETAFromPickup(pickupLat, pickupLng, deliveryLat, deliveryLng) {
+            return calcETA(pickupLat, pickupLng, deliveryLat, deliveryLng);
+        }
+
+        async function requestDelivery() {
+            const body = {
+                pickup_address: document.getElementById('pickupAddr').value,
+                pickup_lat: parseFloat(document.getElementById('pickupLat').value),
+                pickup_lng: parseFloat(document.getElementById('pickupLng').value),
+                delivery_address: document.getElementById('deliveryAddr').value,
+                delivery_lat: parseFloat(document.getElementById('deliveryLat').value),
+                delivery_lng: parseFloat(document.getElementById('deliveryLng').value),
+            };
+
+            const errEl = document.getElementById('formError');
+            errEl.classList.add('hidden');
+
+            if (!body.pickup_address || !body.delivery_address || isNaN(body.pickup_lat) || isNaN(body.delivery_lat)) {
+                errEl.textContent = 'Please fill in all fields.';
+                errEl.classList.remove('hidden');
+                return;
+            }
+
+            try {
+                const res = await fetch(`${API}/orders/create`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(body)
+                });
+                const data = await res.json();
+                if (res.ok) {
+                    currentOrderId = data.order.id;
+                    showTracking(data.order, data.assigned_driver);
+                } else {
+                    errEl.textContent = data.detail || 'Failed to create order.';
+                    errEl.classList.remove('hidden');
+                }
+            } catch (e) {
+                errEl.textContent = 'Could not connect to server.';
+                errEl.classList.remove('hidden');
+            }
+        }
+
+        function showTracking(order, driver) {
+            document.getElementById('requestForm').classList.add('hidden');
+            document.getElementById('trackingPanel').classList.remove('hidden');
+
+            document.getElementById('trackOrderId').textContent = order.id;
+            document.getElementById('trackPickup').textContent = order.pickup_address;
+            document.getElementById('trackDelivery').textContent = order.delivery_address;
+            currentOrder = order;
+
+            updateTrackingUI(order, driver);
+
+            // Add map markers
+            if (pickupMarker) map.removeLayer(pickupMarker);
+            if (deliveryMarker) map.removeLayer(deliveryMarker);
+
+            pickupMarker = L.marker([order.pickup_lat, order.pickup_lng], {
+                icon: L.divIcon({ className: '', html: '<div style="background:#112147;color:white;padding:3px 8px;border-radius:4px;font-size:11px;font-weight:600;white-space:nowrap;transform:translateY(-100%);margin-top:-5px;">Pickup</div>' })
+            }).addTo(map).bindPopup('Pickup: ' + order.pickup_address);
+
+            deliveryMarker = L.marker([order.delivery_lat, order.delivery_lng], {
+                icon: L.divIcon({ className: '', html: '<div style="background:#f5a623;color:white;padding:3px 8px;border-radius:4px;font-size:11px;font-weight:600;white-space:nowrap;transform:translateY(-100%);margin-top:-5px;">Delivery</div>' })
+            }).addTo(map).bindPopup('Delivery: ' + order.delivery_address);
+
+            drawRoute(order, driver);
+
+            map.fitBounds([
+                [order.pickup_lat, order.pickup_lng],
+                [order.delivery_lat, order.delivery_lng]
+            ], { padding: [50, 50] });
+
+            const fallbackETA = calcETAFromPickup(order.pickup_lat, order.pickup_lng, order.delivery_lat, order.delivery_lng);
+            document.getElementById('etaValue').textContent = '~' + fallbackETA;
+
+            if (driver && driver.id) updateDriverOnMap(driver);
+
+            trackingInterval = setInterval(() => pollOrder(order.id), 5000);
+        }
+
+        function updateTrackingUI(order, driver) {
+            const status = order.status;
+            const statusEl = document.getElementById('trackStatus');
+            statusEl.textContent = status.replace('_', ' ');
+            statusEl.className = `badge ${status}`;
+            document.getElementById('trackStatusText').textContent = status.replace('_', ' ');
+
+            if (driver && driver.name) {
+                document.getElementById('driverName').textContent = driver.name;
+                document.getElementById('driverPhone').textContent = driver.phone || '';
+                document.getElementById('driverInitial').textContent = driver.name.charAt(0).toUpperCase();
+
+                if (driver.latitude && driver.longitude) {
+                    const eta = calcETA(driver.latitude, driver.longitude, order.delivery_lat, order.delivery_lng);
+                    document.getElementById('etaValue').textContent = eta;
+                    updateDriverOnMap(driver);
+                }
+            }
+        }
+
+        function drawRoute(order, driver) {
+            if (routeLine) {
+                map.removeLayer(routeLine);
+                routeLine = null;
+            }
+
+            const routePoints = [];
+            if (driver && driver.latitude && driver.longitude) {
+                routePoints.push([driver.latitude, driver.longitude]);
+            }
+            routePoints.push([order.pickup_lat, order.pickup_lng]);
+            routePoints.push([order.delivery_lat, order.delivery_lng]);
+
+            routeLine = L.polyline(routePoints, {
+                color: '#112147',
+                weight: 3,
+                dashArray: '8, 8',
+                opacity: 0.7
+            }).addTo(map);
+        }
+
+        function updateDriverOnMap(driver) {
+            if (!driver.latitude || !driver.longitude) return;
+            if (driverMarker) map.removeLayer(driverMarker);
+            driverMarker = L.marker([driver.latitude, driver.longitude], {
+                icon: L.divIcon({ className: '', html: '<div style="background:#f59e0b;color:white;padding:3px 8px;border-radius:4px;font-size:11px;font-weight:600;white-space:nowrap;transform:translateY(-100%);margin-top:-5px;">Driver</div>' })
+            }).addTo(map).bindPopup('Driver: ' + driver.name);
+
+            if (currentOrder) {
+                drawRoute(currentOrder, driver);
+            }
+        }
+
+        async function pollOrder(orderId) {
+            try {
+                const orderRes = await fetch(`${API}/orders/${orderId}`);
+                const order = await orderRes.json();
+
+                if (order.driver_id) {
+                    const driverRes = await fetch(`${API}/drivers/${order.driver_id}`);
+                    const driver = await driverRes.json();
+                    updateTrackingUI(order, driver);
+                } else {
+                    updateTrackingUI(order, null);
+                }
+
+                if (order.status === 'delivered') {
+                    clearInterval(trackingInterval);
+                    document.getElementById('etaValue').textContent = 'Delivered!';
+                }
+            } catch (e) {}
+        }
+
+        initMap();
+    </script>
+</body>
+</html>
